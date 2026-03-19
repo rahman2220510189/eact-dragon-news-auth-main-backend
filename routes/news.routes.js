@@ -10,22 +10,33 @@ module.exports = (newsCollection, usersCollection) => {
   router.get("/", async (req, res) => {
     try {
       const { category, page = 1, limit = 10 } = req.query;
-
-      // Build filter query
       const filter = category ? { category } : {};
-
       const skip = (parseInt(page) - 1) * parseInt(limit);
 
       const news = await newsCollection
         .find(filter)
-        .sort({ createdAt: -1 }) // newest first
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit))
         .toArray();
 
       const total = await newsCollection.countDocuments(filter);
-
       res.json({ news, total, page: parseInt(page), limit: parseInt(limit) });
+    } catch (err) {
+      res.status(500).json({ message: "Server error", error: err.message });
+    }
+  });
+
+  // GET /api/news/my-posts — MUST be before /:id route
+  router.get("/my-posts", verifyToken, async (req, res) => {
+    try {
+      // Find all news posted by logged-in user
+      const news = await newsCollection
+        .find({ "author.id": new ObjectId(req.user.id) })
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      res.json({ news });
     } catch (err) {
       res.status(500).json({ message: "Server error", error: err.message });
     }
@@ -59,7 +70,6 @@ module.exports = (newsCollection, usersCollection) => {
     try {
       const { title, content, category, thumbnail } = req.body;
 
-      // Validate required fields
       if (!title || !content || !category) {
         return res.status(400).json({ message: "Title, content and category are required" });
       }
@@ -93,12 +103,11 @@ module.exports = (newsCollection, usersCollection) => {
     }
   });
 
-  // PATCH /api/news/:id — update news (only author can update)
+  // PATCH /api/news/:id — update news (only author)
   router.patch("/:id", verifyToken, async (req, res) => {
     try {
       const { title, content, category, thumbnail } = req.body;
 
-      // Find news first
       const news = await newsCollection.findOne({
         _id: new ObjectId(req.params.id),
       });
@@ -114,15 +123,7 @@ module.exports = (newsCollection, usersCollection) => {
 
       await newsCollection.updateOne(
         { _id: new ObjectId(req.params.id) },
-        {
-          $set: {
-            title,
-            content,
-            category,
-            thumbnail,
-            updatedAt: new Date(),
-          },
-        }
+        { $set: { title, content, category, thumbnail, updatedAt: new Date() } }
       );
 
       res.json({ message: "News updated" });
