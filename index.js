@@ -38,22 +38,22 @@ async function run() {
     const db = client.db(process.env.DB_NAME);
 
     // Collections
-    // const usersCollection = db.collection("users");
-    // const newsCollection = db.collection("news");
-    // const categoriesCollection = db.collection("categories");
-    // const commentsCollection = db.collection("comments");
+    const usersCollection = db.collection("users");
+    const newsCollection = db.collection("news");
+    const categoriesCollection = db.collection("categories");
+    const commentsCollection = db.collection("comments");
 
-    // // Import routes — pass collections so routes can use them
-    // const authRoutes = require("./routes/auth.routes")(usersCollection);
-    // const newsRoutes = require("./routes/news.routes")(newsCollection, usersCollection);
-    // const categoryRoutes = require("./routes/category.routes")(categoriesCollection);
-    // const commentRoutes = require("./routes/comment.routes")(commentsCollection, usersCollection);
+    // Import routes — pass collections so routes can use them
+    const authRoutes = require("./routes/auth.routes")(usersCollection);
+    const newsRoutes = require("./routes/news.routes")(newsCollection, usersCollection);
+    const categoryRoutes = require("./routes/category.routes")(categoriesCollection);
+    const commentRoutes = require("./routes/comment.routes")(commentsCollection, usersCollection);
 
-    // // Use routes
-    // app.use("/api/auth", authRoutes);
-    // app.use("/api/news", newsRoutes);
-    // app.use("/api/categories", categoryRoutes);
-    // app.use("/api/comments", commentRoutes);
+    // Use routes
+    app.use("/api/auth", authRoutes);
+    app.use("/api/news", newsRoutes);
+    app.use("/api/categories", categoryRoutes);
+    app.use("/api/comments", commentRoutes);
 
     // Health check route
     app.get("/", (req, res) => {
