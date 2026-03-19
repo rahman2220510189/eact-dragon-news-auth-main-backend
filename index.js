@@ -6,16 +6,19 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 dotenv.config();
 
 const app = express();
+
+// Middleware
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL,
     "http://localhost:5173",
-  
   ],
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// MongoDB Connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.cjuyyb2.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -31,13 +34,30 @@ async function run() {
     await client.connect();
     console.log("MongoDB Connected ");
 
-    // Routes define 
-    
- 
- 
-    // Test route
+    // Database reference
+    const db = client.db(process.env.DB_NAME);
+
+    // Collections
+    // const usersCollection = db.collection("users");
+    // const newsCollection = db.collection("news");
+    // const categoriesCollection = db.collection("categories");
+    // const commentsCollection = db.collection("comments");
+
+    // // Import routes — pass collections so routes can use them
+    // const authRoutes = require("./routes/auth.routes")(usersCollection);
+    // const newsRoutes = require("./routes/news.routes")(newsCollection, usersCollection);
+    // const categoryRoutes = require("./routes/category.routes")(categoriesCollection);
+    // const commentRoutes = require("./routes/comment.routes")(commentsCollection, usersCollection);
+
+    // // Use routes
+    // app.use("/api/auth", authRoutes);
+    // app.use("/api/news", newsRoutes);
+    // app.use("/api/categories", categoryRoutes);
+    // app.use("/api/comments", commentRoutes);
+
+    // Health check route
     app.get("/", (req, res) => {
-      res.json({ message: "Career Coach API running ✅" });
+      res.json({ message: "News Portal API running " });
     });
 
     const PORT = process.env.PORT || 5000;
@@ -46,7 +66,7 @@ async function run() {
     });
 
   } catch (error) {
-    console.log("MongoDB Error ", error.message);
+    console.log("MongoDB Error:", error.message);
   }
 }
 
