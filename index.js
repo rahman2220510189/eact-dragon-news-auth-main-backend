@@ -48,12 +48,18 @@ async function run() {
     const newsRoutes = require("./routes/news.routes")(newsCollection, usersCollection);
     const categoryRoutes = require("./routes/category.routes")(categoriesCollection);
     const commentRoutes = require("./routes/comment.routes")(commentsCollection, usersCollection);
-
+    const adminRoutes = require("./routes/admin.routes")(
+     usersCollection,
+     newsCollection,
+     categoriesCollection,
+     commentsCollection
+    );
     // Use routes
     app.use("/api/auth", authRoutes);
     app.use("/api/news", newsRoutes);
     app.use("/api/categories", categoryRoutes);
     app.use("/api/comments", commentRoutes);
+    app.use("/api/admin", adminRoutes);
 
     // Health check route
     app.get("/", (req, res) => {
