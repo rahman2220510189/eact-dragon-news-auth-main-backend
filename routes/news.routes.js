@@ -154,6 +154,40 @@ module.exports = (newsCollection, usersCollection) => {
       res.status(500).json({ message: "Server error", error: err.message });
     }
   });
+  // POST /api/news/:id/like — toggle like on a news
+router.post("/:id/like", verifyToken, async (req, res) => {
+  try {
+    const news = await newsCollection.findOne({
+      _id: new ObjectId(req.params.id),
+    });
+
+    if (!news) {
+      return res.status(404).json({ message: "News not found" });
+    }
+
+    const userId = req.user.id.toString();
+    const likedBy = news.likedBy || [];
+    const alreadyLiked = likedBy.includes(userId);
+
+    if (alreadyLiked) {
+      // Unlike — remove user from likedBy array
+      await newsCollection.updateOne(
+        { _id: new ObjectId(req.params.id) },
+        { $pull: { likedBy: userId }, $inc: { likes: -1 } }
+      );
+      res.json({ liked: false, likeCount: (news.likes || 1) - 1 });
+    } else {
+      // Like — add user to likedBy array
+      await newsCollection.updateOne(
+        { _id: new ObjectId(req.params.id) },
+        { $push: { likedBy: userId }, $inc: { likes: 1 } }
+      );
+      res.json({ liked: true, likeCount: (news.likes || 0) + 1 });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
 
   return router;
 };
